@@ -44,7 +44,7 @@ To train, download the RNA training data from the above link.
 ```
 mkdir runs
 pip install pytorch-ranger
-./model.py -c rna.config -n NAME -l
+./model_dp.py -c rna.config -n NAME -l
 ```
 
 ### Parameters
