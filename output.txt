@@ -1,0 +1,441 @@
+Using device: cuda
+Using training file: rna-train.hdf5
+Initializing network
+padding: 0 seperable: -1 ch 128 k: 9 s: 1 sqex: 0 drop: 0.1 expansion: False
+convsize: 4088
+padding: 1 seperable: 0 ch 256 k: 3 s: 1 sqex: 1 drop: 0 expansion: True
+convsize: 4088
+padding: 5 seperable: 1 ch 256 k: 10 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 4089
+padding: 5 seperable: 1 ch 256 k: 10 s: 10 sqex: 1 drop: 0.1 expansion: True
+convsize: 409
+padding: 5 seperable: 1 ch 320 k: 10 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 410
+padding: 7 seperable: 1 ch 384 k: 15 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 410
+padding: 10 seperable: 1 ch 448 k: 20 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 411
+padding: 12 seperable: 1 ch 512 k: 25 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 411
+padding: 15 seperable: 1 ch 512 k: 30 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 412
+padding: 17 seperable: 1 ch 512 k: 35 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 412
+padding: 20 seperable: 1 ch 512 k: 40 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 413
+padding: 22 seperable: 1 ch 512 k: 45 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 413
+padding: 25 seperable: 1 ch 512 k: 50 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 414
+padding: 27 seperable: 1 ch 768 k: 55 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 414
+padding: 30 seperable: 1 ch 768 k: 60 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 415
+padding: 32 seperable: 1 ch 768 k: 65 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 415
+padding: 35 seperable: 1 ch 768 k: 70 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 416
+padding: 37 seperable: 1 ch 768 k: 75 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 416
+padding: 40 seperable: 1 ch 768 k: 80 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 417
+padding: 42 seperable: 1 ch 768 k: 85 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 417
+padding: 45 seperable: 1 ch 768 k: 90 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 418
+padding: 47 seperable: 1 ch 768 k: 95 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 418
+padding: 50 seperable: 1 ch 768 k: 100 s: 1 sqex: 1 drop: 0.1 expansion: True
+convsize: 419
+Finished init network
+Model parameters: 10788508
+Optimizer: ranger lr: 0.002 weightdecay 0.01
+Scheduler: reducelronplateau patience: 1 factor: 0.5 threshold 0.1 minlr: 1e-05 reduce: 2
+network(
+  (convlayers): Sequential(
+    (dpconv0): dpblock(
+      (dp): dpool(
+        (predictor): Sequential(
+          (0): Conv1d(2, 32, kernel_size=(31,), stride=(1,), padding=(15,))
+          (1): BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): SiLU()
+          (3): Conv1d(32, 32, kernel_size=(15,), stride=(1,), padding=(7,))
+          (4): BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (5): SiLU()
+          (6): Conv1d(32, 2, kernel_size=(15,), stride=(1,), padding=(7,))
+        )
+        (activation): Sequential(
+          (0): GLU(dim=1)
+          (1): Dropout(p=0.05, inplace=False)
+        )
+        (conv1): Conv1d(1, 256, kernel_size=(9,), stride=(1,), bias=False)
+        (batch_norm1): BatchNorm1d(256, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (conv1): convblock(
+      (conv): Conv1d(128, 256, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+      (bn1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=256, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=256, bias=True)
+        (sigmoid): Sigmoid()
+      )
+    )
+    (conv2): convblock(
+      (depthwise): Conv1d(256, 256, kernel_size=(10,), stride=(1,), padding=(5,), groups=256, bias=False)
+      (bn1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=256, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=256, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(256, 256, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv3): convblock(
+      (depthwise): Conv1d(256, 256, kernel_size=(10,), stride=(10,), padding=(5,), groups=256, bias=False)
+      (bn1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=256, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=256, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(256, 256, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv4): convblock(
+      (expansion): Conv1d(256, 320, kernel_size=(1,), stride=(1,), bias=False)
+      (expansion_norm): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (expansion_act): GLU(dim=-1)
+      (depthwise): Conv1d(320, 320, kernel_size=(10,), stride=(1,), padding=(5,), groups=320, bias=False)
+      (bn1): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=320, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=320, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(320, 320, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv5): convblock(
+      (expansion): Conv1d(320, 384, kernel_size=(1,), stride=(1,), bias=False)
+      (expansion_norm): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (expansion_act): GLU(dim=-1)
+      (depthwise): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+      (bn1): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=384, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=384, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv6): convblock(
+      (expansion): Conv1d(384, 448, kernel_size=(1,), stride=(1,), bias=False)
+      (expansion_norm): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (expansion_act): GLU(dim=-1)
+      (depthwise): Conv1d(448, 448, kernel_size=(20,), stride=(1,), padding=(10,), groups=448, bias=False)
+      (bn1): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=448, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=448, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(448, 448, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv7): convblock(
+      (expansion): Conv1d(448, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (expansion_norm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (expansion_act): GLU(dim=-1)
+      (depthwise): Conv1d(512, 512, kernel_size=(25,), stride=(1,), padding=(12,), groups=512, bias=False)
+      (bn1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=512, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=512, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(512, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv8): convblock(
+      (depthwise): Conv1d(512, 512, kernel_size=(30,), stride=(1,), padding=(15,), groups=512, bias=False)
+      (bn1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=512, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=512, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(512, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv9): convblock(
+      (depthwise): Conv1d(512, 512, kernel_size=(35,), stride=(1,), padding=(17,), groups=512, bias=False)
+      (bn1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=512, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=512, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(512, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv10): convblock(
+      (depthwise): Conv1d(512, 512, kernel_size=(40,), stride=(1,), padding=(20,), groups=512, bias=False)
+      (bn1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=512, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=512, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(512, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv11): convblock(
+      (depthwise): Conv1d(512, 512, kernel_size=(45,), stride=(1,), padding=(22,), groups=512, bias=False)
+      (bn1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=512, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=512, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(512, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv12): convblock(
+      (depthwise): Conv1d(512, 512, kernel_size=(50,), stride=(1,), padding=(25,), groups=512, bias=False)
+      (bn1): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=512, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=512, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(512, 512, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv13): convblock(
+      (expansion): Conv1d(512, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (expansion_norm): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (expansion_act): GLU(dim=-1)
+      (depthwise): Conv1d(768, 768, kernel_size=(55,), stride=(1,), padding=(27,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv14): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(60,), stride=(1,), padding=(30,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv15): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(65,), stride=(1,), padding=(32,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv16): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(70,), stride=(1,), padding=(35,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv17): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(75,), stride=(1,), padding=(37,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv18): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(80,), stride=(1,), padding=(40,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv19): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(85,), stride=(1,), padding=(42,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv20): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(90,), stride=(1,), padding=(45,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv21): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(95,), stride=(1,), padding=(47,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+    (conv22): convblock(
+      (depthwise): Conv1d(768, 768, kernel_size=(100,), stride=(1,), padding=(50,), groups=768, bias=False)
+      (bn1): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act1): GLU(dim=-1)
+      (sqex): squeeze_excite(
+        (avg): AdaptiveAvgPool1d(output_size=1)
+        (fc1): Linear(in_features=768, out_features=32, bias=True)
+        (activation): Mish()
+        (fc2): Linear(in_features=32, out_features=768, bias=True)
+        (sigmoid): Sigmoid()
+      )
+      (pointwise): Conv1d(768, 768, kernel_size=(1,), stride=(1,), bias=False)
+      (bn2): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act2): GLU(dim=-1)
+      (drop): Dropout(p=0.1, inplace=False)
+    )
+  )
+  (final): Linear(in_features=768, out_features=5, bias=True)
+)
+start size torch.Size([1, 1, 4096])
