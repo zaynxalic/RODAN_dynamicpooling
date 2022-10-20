@@ -362,7 +362,6 @@ class dpool(nn.Module):
         features = _x
         
         if x.shape[1] != 1:
-            print("I am here GG")
             __x =  self.conv1x1(x)
             # input two features x, x^2 as input for predictor network
             jumps_mat = self.predictor(torch.cat([__x, __x*__x], dim=1))
