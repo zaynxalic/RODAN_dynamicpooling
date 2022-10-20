@@ -21,18 +21,18 @@ import math
 from itertools import product
 from collections import OrderedDict
 import ont
+from torch.onnx import export
 #from warp_rna import rna_loss
 # from ranger21 import Ranger21
 iterations = 0
 # configuration
-defaultconfig = {"layer": 12,"name": "default", "seqlen": 4096, "epochs": 30, "optimizer": "ranger", "lr": 3e-3, "weightdecay": 0.01, "batchsize": 3, "dropout": 0.1, "activation": "mish", "sqex_activation": "mish", "sqex_reduction": 32, "trainfile": "rna-train.hdf5", "validfile": "rna-valid.hdf5", "amp": False, "scheduler": "reducelronplateau", "scheduler_patience": 1, "scheduler_factor": 0.5, "scheduler_threshold": 0.1, "scheduler_minlr": 1e-05, "scheduler_reduce": 2, "gradclip": 0, "train_loopcount": 1000000, "valid_loopcount": 1000, "saveinit": False, "dp_dropout":0.05, "dp_activation":"glu","vocab": ['<PAD>', 'A', 'C', 'G', 'T']}
+defaultconfig = {"layer": [0,1],"name": "default", "seqlen": 4096, "epochs": 30, "optimizer": "ranger", "lr": 3e-3, "weightdecay": 0.01, "batchsize": 3, "dropout": 0.1, "activation": "mish", "sqex_activation": "mish", "sqex_reduction": 32, "trainfile": "rna-train.hdf5", "validfile": "rna-valid.hdf5", "amp": False, "scheduler": "reducelronplateau", "scheduler_patience": 1, "scheduler_factor": 0.5, "scheduler_threshold": 0.1, "scheduler_minlr": 1e-05, "scheduler_reduce": 2, "gradclip": 0, "train_loopcount": 1000000, "valid_loopcount": 1000, "saveinit": False, "dp_dropout":0.05, "dp_activation":"glu","vocab": ['<PAD>', 'A', 'C', 'G', 'T']}
 
 
 # the third layer has a 10 stride
 rna_default = [[-1, 256, 0, 3, 1, 1, 0], [-1, 256, 1, 10, 1, 1, 1], [-1, 256, 1, 10, 10, 1, 1], [-1, 320, 1, 10, 1, 1, 1], [-1, 384, 1, 15, 1, 1, 1], [-1, 448, 1, 20, 1, 1, 1], [-1, 512, 1, 25, 1, 1, 1], [-1, 512, 1, 30, 1, 1, 1], [-1, 512, 1, 35, 1, 1, 1], [-1, 512, 1, 40, 1, 1, 1], [-1, 512, 1, 45, 1, 1, 1], [-1, 512, 1, 50, 1, 1, 1], [-1, 768, 1, 55, 1, 1, 1], [-1, 768, 1, 60, 1, 1, 1], [-1, 768, 1, 65, 1, 1, 1], [-1, 768, 1, 70, 1, 1, 1], [-1, 768, 1, 75, 1, 1, 1], [-1, 768, 1, 80, 1, 1, 1], [-1, 768, 1, 85, 1, 1, 1], [-1, 768, 1, 90, 1, 1, 1], [-1, 768, 1, 95, 1, 1, 1], [-1, 768, 1, 100, 1, 1, 1]]
 dna_default = [[-1, 320, 0, 3, 1, 1, 0], [-1, 320, 1, 3, 3, 1, 1], [-1, 384, 1, 6, 1, 1, 1], [-1, 448, 1, 9, 1, 1, 1], [-1, 512, 1, 12, 1, 1, 1], [-1, 576, 1, 15, 1, 1,
                                                                                                                                                    1], [-1, 640, 1, 18, 1, 1, 1], [-1, 704, 1, 21, 1, 1, 1], [-1, 768, 1, 24, 1, 1, 1], [-1, 832, 1, 27, 1, 1, 1], [-1, 896, 1, 30, 1, 1, 1], [-1, 960, 1, 33, 1, 1, 1]]
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class objectview(object):
@@ -362,6 +362,7 @@ class dpool(nn.Module):
         features = _x
         
         if x.shape[1] != 1:
+            print("I am here GG")
             __x =  self.conv1x1(x)
             # input two features x, x^2 as input for predictor network
             jumps_mat = self.predictor(torch.cat([__x, __x*__x], dim=1))
@@ -408,7 +409,7 @@ def activation_function(activation):
 
 
 class network(nn.Module):
-    def __init__(self, config=None, arch=None, seqlen=4096, debug=False, dpblock_flag=True, replace=False):
+    def __init__(self, config=None, arch=None, seqlen=4096, debug=False, dpblock_flag=True, replace=True):
         """
         Args:
             config (_type_, optional): _description_. Defaults to None.
@@ -425,7 +426,8 @@ class network(nn.Module):
         # sets the dp_layer settings
         super().__init__()
         self.dp_layer = [4, 768, -1, 9, 1, 0, 1, 0, 1, 3, 0.05, 32]
-        self.layer_dict = {12: 768, 0 : 256, 3: 320, 4: 384, 5: 448, 6: 512, }
+        self.layer_dict = {0: 256, 1: 256, 2: 256, 3: 320, 4: 384, 5: 448, 6: 512, 7: 512, 8: 512, 9: 512, 10: 512, 11: 512, 12: 768, 13: 768, 14: 768, 15: 768, 16: 768, 17: 768, 
+18: 768, 19: 768, 20: 768, 21: 768}
         if debug:
             print("Initializing network")
         self.seqlen = seqlen
@@ -446,7 +448,15 @@ class network(nn.Module):
             dpblock_idx = config.layer
             try:
                 if replace:
-                    arch[dpblock_idx] = self.dp_layer
+                    # change the dp_layers value
+                    print(dpblock_idx)
+                    if isinstance(dpblock_idx, list): # try multiple layers
+                        for idx in dpblock_idx:
+                            self.dp_layer[1] = self.layer_dict[idx]
+                            arch[idx] = self.dp_layer
+                    elif isinstance(dpblock_idx, int): #only replace with one layer
+                        self.dp_layer[1] = self.layer_dict[dpblock_idx]
+                        arch[dpblock_idx] = self.dp_layer
                 else:
                     arch.insert(dpblock_idx, self.dp_layer)
             except Exception:
@@ -455,7 +465,7 @@ class network(nn.Module):
         for i, layer in enumerate(arch):
             if len(layer) > 7:
                 paddingarg = layer[0]
-                out_channels = self.layer_dict[dpblock_idx]
+                out_channels =  layer[1]
                 seperable = layer[2]
                 kernel = layer[3]
                 stride = layer[4]
@@ -655,6 +665,7 @@ def train(config=None, args=None, arch=None):
     # i.e. event, label, event_len, label_len
     ##############################################################################
         for i, (event, event_len, label, label_len) in enumerate(data_loader):
+            # event =
             event = torch.unsqueeze(event, 1)
             if event.shape[0] < config.batchsize:
                 continue
