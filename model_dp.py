@@ -133,31 +133,9 @@ class convblock(torch.nn.Module):
         self.doexpansion = expansion
         # fix self.squeeze
         dwchannels = in_channels
-        if seperable:
-            if self.doexpansion and self.in_channels != self.out_channels:
-                self.expansion = torch.nn.Conv1d(
-                    in_channels, out_channels, kernel_size=1, stride=1, groups=1, bias=False)
-                self.expansion_norm = torch.nn.BatchNorm1d(out_channels)
-                self.expansion_act = self.activation()
-                dwchannels = out_channels
-
-            self.depthwise = torch.nn.Conv1d(dwchannels, out_channels, kernel_size=kernel_size,
-                                             stride=stride, padding=padding, dilation=dilation, bias=bias, groups=out_channels//groups)
-            if self.batchnorm:
-                self.bn1 = torch.nn.BatchNorm1d(out_channels)
-            self.act1 = self.activation()
-            if self.squeeze:
-                self.sqex = squeeze_excite(
-                    in_channels=out_channels, reduction=self.squeeze, activation=sqex_activation)
-            self.pointwise = torch.nn.Conv1d(
-                out_channels, out_channels, kernel_size=1, dilation=dilation, bias=bias, padding=0)
-            if self.batchnorm:
-                self.bn2 = torch.nn.BatchNorm1d(out_channels)
-            self.act2 = self.activation()
-            if self.dropout:
-                self.drop = torch.nn.Dropout(self.dropout)
-        else:
-            # the smoothing layer, add a conv1d without bias
+        self.dypool = False
+        # [-1, 256, 1, 10, 10, 1, 1],
+        if stride > 1:
             layer = [4, 256, -1, 9, 1, 0, 1, 0, 1, 3, 0.05, 32]
             paddingarg = layer[0]
             out_channels =  layer[1]
@@ -169,9 +147,41 @@ class convblock(torch.nn.Module):
             norm = layer[9]
             dropout = layer[10]
             prediction_size = layer[11]
-            self.dpool = dpool(in_channels, out_channels, kernel, stride=stride, padding=paddingarg, dilation=dilation, bias=False, norm=norm, dropout=dropout, activation=torch.nn.GLU, prediction_size=prediction_size)
-            # self.conv = torch.nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size,
-                                        # stride=stride, padding=padding, dilation=dilation, bias=bias)
+            self.dypool = True
+
+        if seperable:
+            if self.doexpansion and self.in_channels != self.out_channels:
+                self.expansion = torch.nn.Conv1d(
+                    in_channels, out_channels, kernel_size=1, stride=1, groups=1, bias=False)
+                self.expansion_norm = torch.nn.BatchNorm1d(out_channels)
+                self.expansion_act = self.activation()
+                dwchannels = out_channels
+
+            if self.dypool:
+            # start here when stride = 10
+                self.depthwise = dpool(in_channels, out_channels, kernel, stride=stride, padding=paddingarg, dilation=dilation, bias=False, norm=norm, dropout=dropout, activation=torch.nn.GLU, prediction_size=prediction_size)
+                self.dypool = False
+            else:
+                self.depthwise = torch.nn.Conv1d(dwchannels, out_channels, kernel_size=kernel_size,
+                                                stride=stride, padding=padding, dilation=dilation, bias=bias, groups=out_channels//groups)
+            if self.batchnorm:
+                self.bn1 = torch.nn.BatchNorm1d(out_channels)
+            self.act1 = self.activation()
+            if self.squeeze:
+                # stride = 10
+                self.sqex = squeeze_excite(
+                    in_channels=out_channels, reduction=self.squeeze, activation=sqex_activation)
+            self.pointwise = torch.nn.Conv1d(
+                out_channels, out_channels, kernel_size=1, dilation=dilation, bias=bias, padding=0)
+            if self.batchnorm:
+                self.bn2 = torch.nn.BatchNorm1d(out_channels)
+            self.act2 = self.activation()
+            if self.dropout:
+                self.drop = torch.nn.Dropout(self.dropout)
+        else:
+            # the smoothing layer, add a conv1d without bias
+            self.conv = torch.nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size,
+                                        stride=stride, padding=padding, dilation=dilation, bias=bias)
             if self.batchnorm:
                 # set the size as output size and the shape is the as input
                 self.bn1 = torch.nn.BatchNorm1d(out_channels)
@@ -218,8 +228,8 @@ class convblock(torch.nn.Module):
                 x = self.drop(x)
         else:
             # the first convolution
-            # x = self.conv(x)
-            x = self.dpool(x)
+            x = self.conv(x)
+            # x = self.dpool(x)
             if self.batchnorm:
                 x = self.bn1(x)
             x = self.act1(x)
@@ -375,7 +385,6 @@ class dpool(nn.Module):
         features = _x
         
         if x.shape[1] != 1:
-            print("I am here GG")
             __x =  self.conv1x1(x)
             # input two features x, x^2 as input for predictor network
             jumps_mat = self.predictor(torch.cat([__x, __x*__x], dim=1))
