@@ -19,6 +19,13 @@ import ont
 defaultconfig = {"name":"default", "seqlen":4096, "epochs":30, "optimizer":"ranger", "lr":4e-3, "weightdecay":0.01, "batchsize":3, "dropout": 0.1, "activation":"mish", "sqex_activation":"mish", "sqex_reduction":32, "trainfile":"rna-train.hdf5", "validfile":"rna-valid.hdf5", "amp":False, "scheduler":"reducelronplateau", "scheduler_patience":1, "scheduler_factor":0.5, "scheduler_threshold":0.1, "scheduler_minlr": 1e-05, "scheduler_reduce":2, "gradclip":0, "train_loopcount": 1000000, "valid_loopcount": 1000, "tensorboard":False, "saveinit":False,
         "vocab": [ '<PAD>', 'A', 'C', 'G', 'T' ]}
 
+# paddingarg = layer[0]
+# out_channels = layer[1]
+# seperable = layer[2] 
+# kernel = layer[3]
+# stride = layer[4]
+# sqex = layer[5]
+# dodropout = layer[6]
 rna_default = [[-1, 256, 0, 3, 1, 1, 0], [-1, 256, 1, 10, 1, 1, 1], [-1, 256, 1, 10, 10, 1, 1], [-1, 320, 1, 10, 1, 1, 1], [-1, 384, 1, 15, 1, 1, 1], [-1, 448, 1, 20, 1, 1, 1], [-1, 512, 1, 25, 1, 1, 1], [-1, 512, 1, 30, 1, 1, 1], [-1, 512, 1, 35, 1, 1, 1], [-1, 512, 1, 40, 1, 1, 1], [-1, 512, 1, 45, 1, 1, 1], [-1, 512, 1, 50, 1, 1, 1], [-1, 768, 1, 55, 1, 1, 1], [-1, 768, 1, 60, 1, 1, 1], [-1, 768, 1, 65, 1, 1, 1], [-1, 768, 1, 70, 1, 1, 1], [-1, 768, 1, 75, 1, 1, 1], [-1, 768, 1, 80, 1, 1, 1], [-1, 768, 1, 85, 1, 1, 1], [-1, 768, 1, 90, 1, 1, 1], [-1, 768, 1, 95, 1, 1, 1], [-1, 768, 1, 100, 1, 1, 1]]
 dna_default = [[-1, 320, 0, 3, 1, 1, 0], [-1, 320, 1, 3, 3, 1, 1], [-1, 384, 1, 6, 1, 1, 1], [-1, 448, 1, 9, 1, 1, 1], [-1, 512, 1, 12, 1, 1, 1], [-1, 576, 1, 15, 1, 1, 1], [-1, 640, 1, 18, 1, 1, 1], [-1, 704, 1, 21, 1, 1, 1], [-1, 768, 1, 24, 1, 1, 1], [-1, 832, 1, 27, 1, 1, 1], [-1, 896, 1, 30, 1, 1, 1], [-1, 960, 1, 33, 1, 1, 1]]
 
