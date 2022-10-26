@@ -663,8 +663,6 @@ def train(config=None, args=None, arch=None):
             label_len = label_len.to(device, non_blocking=True)
 
             optimizer.zero_grad()
-
-            # TODO: WE NEED to focus on this part more times... 
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             move_loss = torch.relu(torch.abs(np.log(out.shape[0]/label_len.detach().cpu().numpy()) - np.log(1/3)) - 1) ** 2
