@@ -651,7 +651,7 @@ def train(config=None, args=None, arch=None):
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
             # convert the output to shape
-            move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/label_len.detach().cpu().numpy()) - np.log(1/3)) - 1) ** 2
+            move_loss = torch.relu(torch.abs(np.log(out.shape[0]/label_len.detach().cpu().numpy()) - np.log(1/3)) - 1) ** 2
             loss = losses["loss"] + l * move_loss # parameter
             loss.backward()
             # if loss.item() > 0.004:
