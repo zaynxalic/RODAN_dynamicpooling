@@ -304,6 +304,9 @@ class dpool(nn.Module):
     def cos(self,x):
         return torch.cos(math.pi/2 * x + math.pi/2) + 1.0 
 
+    def cos_star(self,x):
+        return 1/2 * torch.cos(math.pi * x) + 1/2
+        
     def shift(self,x, k):
         return torch.cat([torch.zeros(k).to(x.device), x[:-k]])
 
@@ -674,7 +677,7 @@ def train(config=None, args=None, arch=None):
     shutil.rmtree(args.savedir+"/"+config.name, True)
 
     global iterations
-
+    l = 1 # parameter
     for epoch in range(config.epochs):
         model.train()
         totalloss = 0
@@ -705,6 +708,8 @@ def train(config=None, args=None, arch=None):
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
+            move_loss = torch.relu(torch.abs(torch.log(out.shape[1]) - np.log(1/3)) - 1) ** 2
+            loss = losses["loss"] + l * move_loss # parameter
             loss.backward()
             # if loss.item() > 0.004:
                 # print(loss.item())
@@ -774,7 +779,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
         model.load_state_dict(torch.load(modelfile))
 
     model.eval()
-
+    l = 1
     with torch.no_grad():
         for i, values in enumerate(valid_loader):
             event = values[0]
@@ -792,7 +797,8 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             label_len = label_len.to(device)
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
-            loss = losses["loss"]
+            move_loss = torch.relu(torch.abs(torch.log(out.shape[1]) - np.log(1/3)) - 1) ** 2
+            loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
             total += 1
             if total >= config.valid_loopcount:

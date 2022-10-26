@@ -29,14 +29,6 @@ cd RODAN
 pip install -r requirements.txt
 ```
 
-## Basecalling
-
-To basecall (must be run from root directory):
-
-`./basecall.py /path/to/fast5files > outfile.fasta`
-
-Basecall will recursively search in the specified directory for all fast5 files which can be single or multi fast5 files.
-
 ## Training
 
 To train, download the RNA training data from the above link.
@@ -44,20 +36,31 @@ To train, download the RNA training data from the above link.
 ```
 mkdir runs
 pip install pytorch-ranger
-./model_dp.py -c rna.config -n NAME -l
+./model_dp.py -c rna.config -n NAME -l or 
+
+python model_py.py -c rna.config -n runs -l > output.txt
 ```
 
-### Parameters
--c for configuration file\
--l for label smoothing\
--n the name for the run, the model weights, configuration, and results will be saved in the runs directory\
--v verbose
+
+## Basecalling
+
+To basecall (must be run from root directory):
+
+`./basecall.py /path/to/fast5files > outfile.fasta` or 
+
+`python basecall.py /path/to/fast5files > outfile.fasta`
+
+
+## Minimap matching
+`minimap2 --secondary=no -ax map-ont -t 32 --cs genomefile fastafile > file.sam`
+
+
+## Accuracy 
+`python accuracy.py  /path/to/samfile /path/to/genomefile`
+
+
+Basecall will recursively search in the specified directory for all fast5 files which can be single or multi fast5 files.
 
 ### Test data
 Five samples of human RNA fast5 data is provided in test-data.tgz.
 
-### Memory errors
-If you run out of memory, reduce the batch size with the basecaller with "-b 100" or lower. The default is 200.
-
-### License
-MIT License.
