@@ -26,7 +26,7 @@ from torch.onnx import export
 # from ranger21 import Ranger21
 iterations = 0
 # configuration
-defaultconfig = {"layer": 0,"name": "default", "seqlen": 4096, "epochs": 30, "optimizer": "ranger", "lr": 3e-3, "weightdecay": 0.01, "batchsize": 3, "dropout": 0.1, "activation": "mish", "sqex_activation": "mish", "sqex_reduction": 32, "trainfile": "rna-train.hdf5", "validfile": "rna-valid.hdf5", "amp": False, "scheduler": "reducelronplateau", "scheduler_patience": 1, "scheduler_factor": 0.5, "scheduler_threshold": 0.1, "scheduler_minlr": 1e-05, "scheduler_reduce": 2, "gradclip": 0, "train_loopcount": 1000000, "valid_loopcount": 1000, "saveinit": False, "dp_dropout":0.05, "dp_activation":"glu","vocab": ['<PAD>', 'A', 'C', 'G', 'T']}
+defaultconfig = {"layer": 0,"name": "default", "seqlen": 4096, "epochs": 30, "optimizer": "ranger", "lr": 3e-3, "weightdecay": 0.01, "batchsize": 1, "dropout": 0.1, "activation": "mish", "sqex_activation": "mish", "sqex_reduction": 32, "trainfile": "rna-train.hdf5", "validfile": "rna-valid.hdf5", "amp": False, "scheduler": "reducelronplateau", "scheduler_patience": 1, "scheduler_factor": 0.5, "scheduler_threshold": 0.1, "scheduler_minlr": 1e-05, "scheduler_reduce": 2, "gradclip": 0, "train_loopcount": 1000000, "valid_loopcount": 1000, "saveinit": False, "dp_dropout":0.05, "dp_activation":"glu","vocab": ['<PAD>', 'A', 'C', 'G', 'T']}
 
 
 # the third layer has a 10 stride
@@ -159,6 +159,8 @@ class convblock(torch.nn.Module):
 
             if self.dypool:
             # start here when stride = 10
+                # self.depthwise = torch.nn.Conv1d(dwchannels, out_channels, kernel_size=kernel_size,
+                                                # stride=stride, padding=padding, dilation=dilation, bias=bias, groups=out_channels//groups)
                 self.depthwise = dpool(in_channels, out_channels, kernel, stride=stride, padding=paddingarg, dilation=dilation, bias=False, norm=norm, dropout=dropout, activation=torch.nn.GLU, prediction_size=prediction_size)
                 self.dypool = False
             else:
@@ -412,7 +414,6 @@ class dpool(nn.Module):
         
         x_evs = x_evs.permute(0, 2, 1).contiguous()
         x_evs = F.pad(x_evs, (0, 15 - (x_evs.shape[2] % 15)))
-        # x_evs = F.pad(x_evs, (0, 3 - (x_evs.shape[2] % 3)))
         return x_evs
 ##############################################################################################################################################################################################################################
 
@@ -575,7 +576,6 @@ class network(nn.Module):
         Returns:
             _type_: _description_
         """
-        # s = self.dynpool(x)
         x = self.convlayers(x)
         x = x.permute(0,2,1)
         x = self.final(x)
@@ -691,7 +691,6 @@ def train(config=None, args=None, arch=None):
     # i.e. event, label, event_len, label_len
     ##############################################################################
         for i, (event, event_len, label, label_len) in enumerate(data_loader):
-            # event =
             event = torch.unsqueeze(event, 1)
             if event.shape[0] < config.batchsize:
                 continue
@@ -708,7 +707,8 @@ def train(config=None, args=None, arch=None):
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
-            move_loss = torch.relu(torch.abs(torch.log(out.shape[1]) - np.log(1/3)) - 1) ** 2
+            # convert the output to shape
+            move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/label_len) - np.log(1/3)) - 1) ** 2
             loss = losses["loss"] + l * move_loss # parameter
             loss.backward()
             # if loss.item() > 0.004:
