@@ -451,9 +451,6 @@ class network(nn.Module):
         """
         # sets the dp_layer settings
         super().__init__()
-#         self.dp_layer = [4, 768, -1, 9, 1, 0, 1, 0, 1, 3, 0.05, 32]
-#         self.layer_dict = {0: 256, 1: 256, 2: 256, 3: 320, 4: 384, 5: 448, 6: 512, 7: 512, 8: 512, 9: 512, 10: 512, 11: 512, 12: 768, 13: 768, 14: 768, 15: 768, 16: 768, 17: 768, 
-# 18: 768, 19: 768, 20: 768, 21: 768}
         if debug:
             print("Initializing network")
         self.seqlen = seqlen
@@ -469,40 +466,7 @@ class network(nn.Module):
         self.convlayers = nn.Sequential()
         in_channels = 1
         convsize = self.seqlen
-        ############### Add dynamic pooling flags #######################################################
-        # if dpblock_flag:  # If we apply dynamic pooling on the model
-        #     dpblock_idx = config.layer
-        #     try:
-        #         if replace:
-        #             # change the dp_layers value
-        #             print(dpblock_idx)
-        #             if isinstance(dpblock_idx, list): # try multiple layers
-        #                 for idx in dpblock_idx:
-        #                     self.dp_layer[1] = self.layer_dict[idx]
-        #                     arch[idx] = self.dp_layer
-        #             elif isinstance(dpblock_idx, int): #only replace with one layer
-        #                 self.dp_layer[1] = self.layer_dict[dpblock_idx]
-        #                 arch[dpblock_idx] = self.dp_layer
-        #         else:
-        #             arch.insert(dpblock_idx, self.dp_layer)
-        #     except Exception:
-        #         print(f"The index you type {dpblock_idx} is out of bound")
-        ##################################################################################################
         for i, layer in enumerate(arch):
-            # if len(layer) > 7:
-            #     paddingarg = layer[0]
-            #     out_channels =  layer[1]
-            #     seperable = layer[2]
-            #     kernel = layer[3]
-            #     stride = layer[4]
-            #     sqex = layer[5]
-            #     dodropout = layer[6]
-            #     bias = layer[7]
-            #     dilation = layer[8]
-            #     norm = layer[9]
-            #     dropout = layer[10]
-            #     prediction_size = layer[11]
-            # else:
             paddingarg = layer[0]
             out_channels = layer[1]
             seperable = layer[2]
@@ -536,30 +500,9 @@ class network(nn.Module):
 
             ###################### Dynamic Pooling  ###################################################################
             # add module add_module(name, convblock module)
-            if len(layer) > 7:  # if the layer is dynamic pooling
-                # activation = activation_function(config.dp_activation)
-                # if dodropout:
-                #     dropout = config.dp_dropout
-                # else:
-                #     dropout = 0
-                # self.convlayers.add_module("conv"+str(i), dpool(
-                #         in_channels,
-                #         out_channels,
-                #         kernel,
-                #         stride,
-                #         padding,
-                #         dilation,
-                #         bias,
-                #         norm,
-                #         dropout,
-                #         activation,
-                #         prediction_size))
-                pass
-            #########################################################################################################################################################################################################################################################################################
-            else:
-                activation = activation_function(config.activation)
-                self.convlayers.add_module("conv"+str(i), convblock(in_channels, out_channels, kernel, stride=stride, padding=padding, seperable=seperable,
-                                           activation=activation, expansion=expansion, dropout=dropout, squeeze=squeeze, sqex_activation=sqex_activation, residual=True))
+            activation = activation_function(config.activation)
+            self.convlayers.add_module("conv"+str(i), convblock(in_channels, out_channels, kernel, stride=stride, padding=padding, seperable=seperable,
+                                        activation=activation, expansion=expansion, dropout=dropout, squeeze=squeeze, sqex_activation=sqex_activation, residual=True))
             in_channels = out_channels
             self.final_size = out_channels
 
