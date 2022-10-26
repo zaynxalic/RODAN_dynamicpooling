@@ -118,8 +118,7 @@ def mp_gpu(inqueue, outqueue, config, args):
             end = i+config.batchsize
             if end > chunks.shape[0]: end = chunks.shape[0]
             event = torch.unsqueeze(torch.FloatTensor(chunks[i:end]), 1).to(device, non_blocking=True)
-            out,_, _=model.forward(event)
-            print(out)
+            out=model.forward(event)
             if shtensor is None:
                 shtensor = torch.empty((out.shape), pin_memory=True, dtype=out.dtype)
             if out.shape[1] != shtensor.shape[1]:
@@ -214,41 +213,36 @@ def ctcdecoder(logits, label, blank=False, beam_size=5, alphabet="NACGT", pre=No
 
 
 if __name__ == "__main__":
-    torch.multiprocessing.set_start_method('spawn')
     parser = argparse.ArgumentParser(description='Basecall fast5 files')
-    parser.add_argument("fast5dir", default=None, type=str) 
-    parser.add_argument("-a", "--arch", default=None, type=str, help="architecture settings") # args.arch
-    # parser.add_argument("-m", "--model", default="rna.torch", type=str, help="default: rna.torch")
-    parser.add_argument("-m", "--model", default="runs-epoch29.torch", type=str, help="default: rna.torch") # args.model
-                                                                                                # stored in rna.torch
-    parser.add_argument("-r", "--reverse", default=True, action="store_true", help="reverse for RNA (default: True)") #args.reverse
-    parser.add_argument("-b", "--batchsize", default=200, type=int, help="default: 200") # args.batchsize
-    parser.add_argument("-B", "--beamsize", default=5, type=int, help="CTC beam search size (default: 5)") #args.beamsize
-    parser.add_argument("-e", "--errors", default=False, action="store_true") # args.errors
-    parser.add_argument("-d", "--debug", default=False, action="store_true") # args.debug
-    args = parser.parse_args(['/media/xuechneg/DATA/Desktop/comp/comp Y5 S2/computer-project/IVT_RNA']) #specify the oosition of dataset
+    parser.add_argument("fast5dir", default=None, type=str)
+    parser.add_argument("-a", "--arch", default=None, type=str, help="architecture settings")
+    parser.add_argument("-m", "--model", default="rna.torch", type=str, help="default: rna.torch")
+    parser.add_argument("-r", "--reverse", default=True, action="store_true", help="reverse for RNA (default: True)")
+    parser.add_argument("-b", "--batchsize", default=200, type=int, help="default: 200")
+    parser.add_argument("-B", "--beamsize", default=5, type=int, help="CTC beam search size (default: 5)")
+    parser.add_argument("-e", "--errors", default=False, action="store_true")
+    parser.add_argument("-d", "--debug", default=False, action="store_true")
+    args = parser.parse_args()
 
     torchdict = torch.load(args.model, map_location="cpu")
     origconfig = torchdict["config"]
 
     if args.debug: print(origconfig)
     origconfig["debug"] = args.debug
-    config = network.objectview(origconfig) # Use model.py to train and enerate ATCG
-    # the 'network' inherit from object and we can call the configuration e.g. via config.batchsize
-    
+    config = network.objectview(origconfig)
     config.batchsize = args.batchsize
 
     if args.arch != None:
         if args.debug: print("Loading architecture from:", args.arch)
         args.arch = eval(open(args.arch, "r").read())
     else:
-        args.arch = na_default = [[-1, 256, 0, 3, 1, 1, 0], [-1, 256, 1, 10, 1, 1, 1], [-1, 256, 1, 10, 10, 1, 1], [-1, 320, 1, 10, 1, 1, 1], [-1, 384, 1, 15, 1, 1, 1], [-1, 448, 1, 20, 1, 1, 1], [-1, 512, 1, 25, 1, 1, 1], [-1, 512, 1, 30, 1, 1, 1], [-1, 512, 1, 35, 1, 1, 1], [-1, 512, 1, 40, 1, 1, 1], [-1, 512, 1, 45, 1, 1, 1], [-1, 512, 1, 50, 1, 1, 1], [-1, 768, 1, 55, 1, 1, 1], [-1, 768, 1, 60, 1, 1, 1], [-1, 768, 1, 65, 1, 1, 1], [-1, 768, 1, 70, 1, 1, 1], [-1, 768, 1, 75, 1, 1, 1], [-1, 768, 1, 80, 1, 1, 1], [-1, 768, 1, 85, 1, 1, 1], [-1, 768, 1, 90, 1, 1, 1], [-1, 768, 1, 95, 1, 1, 1], [-1, 768, 1, 100, 1, 1, 1]] # change config.arch type str. to list
+        args.arch = eval(config.arch)
 
     if args.debug: print("Using sequence len:", int(config.seqlen))
     
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.deterministic = True
-    print("start_running!!")
+
     call_queue = Queue()
     write_queue = Queue()
     p1 = Process(target=mp_files, args=(args.fast5dir, call_queue, config, args,))
