@@ -740,7 +740,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             label_len = label_len.to(device)
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
-            move_loss = torch.relu(torch.abs(torch.log(out.shape[1]) - np.log(1/3)) - 1) ** 2
+            move_loss = torch.relu(torch.abs(torch.log(out.shape[0]) - np.log(1/3)) - 1) ** 2
             loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
             total += 1
