@@ -638,7 +638,7 @@ def train(config=None, args=None, arch=None):
     shutil.rmtree(args.savedir+"/"+config.name, True)
 
     global iterations
-
+    l = 1
     for epoch in range(config.epochs):
         model.train()
         totalloss = 0
@@ -667,8 +667,8 @@ def train(config=None, args=None, arch=None):
             # TODO: WE NEED to focus on this part more times... 
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
-            move_loss = torch.relu(torch.abs(torch.log(out.shape[0]) - np.log(1/3)) - 1) ** 2
-            loss = losses["loss"] + move_loss
+            move_loss = torch.relu(torch.abs(np.log(out.shape[0]/label_len.detach().cpu().numpy()) - np.log(1/3)) - 1) ** 2
+            loss = losses["loss"] + l * move_loss
             loss.backward()
             # if loss.item() > 0.004:
                 # print(loss.item())
@@ -756,7 +756,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             label_len = label_len.to(device)
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
-            move_loss = torch.relu(torch.abs(np.log(out.shape[0]/label_len) - np.log(1/3)) - 1) ** 2
+            move_loss = torch.relu(torch.abs(np.log(out.shape[0]/label_len.detach().cpu().numpy()) - np.log(1/3)) - 1) ** 2
             loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
             total += 1
