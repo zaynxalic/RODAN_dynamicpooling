@@ -738,7 +738,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
         model.load_state_dict(torch.load(modelfile))
 
     model.eval()
-
+    l = 1
     with torch.no_grad():
         for i, values in enumerate(valid_loader):
             event = values[0]
@@ -756,8 +756,8 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             label_len = label_len.to(device)
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
-            move_loss = torch.relu(torch.abs(np.log(out.shape[0]) - np.log(1/3)) - 1) ** 2
-            loss = losses["loss"] + move_loss
+            move_loss = torch.relu(torch.abs(np.log(out.shape[0]/label_len) - np.log(1/3)) - 1) ** 2
+            loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
             total += 1
             if total >= config.valid_loopcount:
