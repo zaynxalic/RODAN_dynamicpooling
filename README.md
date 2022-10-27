@@ -30,12 +30,12 @@ pip install -r requirements.txt
 ```
 ## MODEL_DP_REPLACE
 ```
-python model_py_replace.py -c rna_replace.config -n runs -l > output_dp_replace.txt
+python model_dp_replace.py -c rna_replace.config -n runs -l > output_dp_replace.txt
 ```
 
 ## MODEL_DP_INSERT
 ```
-python model_py_insert.py -c rna_insert.config -n runs -l > output_dp_insert.txt
+python model_dp_insert.py -c rna_insert.config -n runs -l > output_dp_insert.txt
 ```
 
 ## Basecalling
