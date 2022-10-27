@@ -30,12 +30,12 @@ pip install -r requirements.txt
 ```
 ## MODEL_DP_REPLACE
 ```
-python model_py_replace.py -c rna.config -n runs -l > output_dp_replace.txt
+python model_py_replace.py -c rna_replace.config -n runs -l > output_dp_replace.txt
 ```
 
 ## MODEL_DP_INSERT
 ```
-python model_py_insert.py -c rna.config -n runs -l > output_dp_insert.txt
+python model_py_insert.py -c rna_insert.config -n runs -l > output_dp_insert.txt
 ```
 
 ## Basecalling
@@ -50,4 +50,10 @@ Basecall will recursively search in the specified directory for all fast5 files 
 
 ### Test data
 Five samples of human RNA fast5 data is provided in test-data.tgz.
+
+### minimap2 Alignment
+`minimap2 --secondary=no -ax map-ont -t 32 --cs genomefile fastafile > file.sam`
+
+### Accuracy 
+`python accuray.py /path/to/samfile /path/to/genomefile`
 
