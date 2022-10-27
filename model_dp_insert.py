@@ -669,7 +669,7 @@ def train(config=None, args=None, arch=None):
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
-            move_loss =  torch.relu(out.shape[0] - 420) ** 2
+            move_loss =  torch.relu(torch.tensor(out.shape[0] - 420)) ** 2
             loss = losses["loss"] + l * move_loss
             loss.backward()
             totalloss += loss.cpu().detach().numpy()
@@ -757,7 +757,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
-            move_loss =  torch.relu(out.shape[0] - 420) ** 2
+            move_loss =  torch.relu(torch.tensor(out.shape[0] - 420)) ** 2
             loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
             total += 1
