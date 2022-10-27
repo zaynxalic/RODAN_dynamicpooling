@@ -321,6 +321,7 @@ class dpool(nn.Module):
             features (_type_): 
             moves (_type_): 
             weights (_type_): 
+
         Returns:
             out: The output of pool
         """
@@ -345,6 +346,7 @@ class dpool(nn.Module):
     def forward(self, x):
         """
         This function is used for training,
+
         Args:
             x (_type_): _description_
         Output:
@@ -533,9 +535,11 @@ class network(nn.Module):
         Obtain the final results
         Args:
             x (_type_): _description_
+
         Returns:
             _type_: _description_
         """
+        # s = self.dynpool(x)
         x = self.convlayers(x)
         x = x.permute(0,2,1)
         x = self.final(x)
@@ -628,7 +632,7 @@ def train(config=None, args=None, arch=None):
         #checkpoint_optimizer = torch.load('runs-ext.torch')
         model.load_state_dict(checkpoint["state_dict"])
         #optimizer.load_state_dict(checkpoint_optimizer["optimizer"])
-        #optimizer.param_groups[0]['lr'] = 0.002
+#         optimizer.param_groups[0]['lr'] = 0.002
         #scheduler.load_state_dict(checkpoint_optimizer["scheduler"])
 
     if not os.path.isdir(args.savedir):
@@ -664,10 +668,10 @@ def train(config=None, args=None, arch=None):
             optimizer.zero_grad()
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
+            loss = losses["loss"]
             move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/max(label_len)) - np.log(1/4)) - 1) ** 2
             loss = losses["loss"] + l * move_loss
             loss.backward()
-
             totalloss += loss.cpu().detach().numpy()
             if count % 1000 == 1:
                 print("Loss", loss.data, "epoch:", epoch,
@@ -734,7 +738,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
         model.load_state_dict(torch.load(modelfile))
 
     model.eval()
-    l = 1
+    l =1
     with torch.no_grad():
         for i, values in enumerate(valid_loader):
             event = values[0]
@@ -752,6 +756,7 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             label_len = label_len.to(device)
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
+            loss = losses["loss"]
             move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/max(label_len)) - np.log(1/4)) - 1) ** 2
             loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
