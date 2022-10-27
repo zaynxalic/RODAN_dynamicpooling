@@ -669,13 +669,13 @@ def train(config=None, args=None, arch=None):
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
-            move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/max(label_len)) - np.log(1/4)) - 1) ** 2
+            move_loss =  torch.relu(out.shape[0] - 420) ** 2
             loss = losses["loss"] + l * move_loss
             loss.backward()
             totalloss += loss.cpu().detach().numpy()
-            if count % 1000 == 1:
-                print("Loss", loss.data, "epoch:", epoch,
-                    count, optimizer.param_groups[0]['lr'])
+            # if count % 1000 == 1:
+            #     print("Loss", loss.data, "epoch:", epoch,
+            #         count, optimizer.param_groups[0]['lr'])
 
             if config.gradclip:
                 grad_norm = torch.nn.utils.clip_grad_norm_(
@@ -687,8 +687,8 @@ def train(config=None, args=None, arch=None):
             iterations += 1
             if loopcount >= config.train_loopcount:
                 break
-        if args.verbose:
-            print("Train epoch loss", totalloss/loopcount)
+        # if args.verbose:
+        #     print("Train epoch loss", totalloss/loopcount)
 
         vl = validate(model, device, config=config,
                       args=args, epoch=epoch, elen=elen)
@@ -709,10 +709,10 @@ def train(config=None, args=None, arch=None):
         torch.save(get_checkpoint(epoch, model, optimizer, scheduler),
                    args.savedir+"/"+config.name+"-ext.torch")
         
-        if args.verbose:
-            print("Train losses:", trainloss)
-            print("Valid losses:", validloss)
-            print("Learning rate:", learningrate)
+        # if args.verbose:
+        #     print("Train losses:", trainloss)
+        #     print("Valid losses:", validloss)
+        #     print("Learning rate:", learningrate)
 
     return trainloss, validloss
 
@@ -757,14 +757,14 @@ def validate(model, device, config=None, args=None, epoch=-1, elen=34):
             out = model.forward(event)
             losses = ont.ctc_label_smoothing_loss(out, label, label_len, ls_weights)
             loss = losses["loss"]
-            move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/max(label_len)) - np.log(1/4)) - 1) ** 2
+            move_loss =  torch.relu(out.shape[0] - 420) ** 2
             loss = losses["loss"] + l * move_loss
             totalloss += loss.cpu().detach().numpy()
             total += 1
             if total >= config.valid_loopcount:
                 break
-    if args.verbose:
-        print("Validation loss:", totalloss / total)
+    # if args.verbose:
+    #     print("Validation loss:", totalloss / total)
 
     return np.float(totalloss / total)
 
