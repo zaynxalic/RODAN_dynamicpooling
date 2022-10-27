@@ -536,7 +536,6 @@ class network(nn.Module):
         Returns:
             _type_: _description_
         """
-        # s = self.dynpool(x)
         x = self.convlayers(x)
         x = x.permute(0,2,1)
         x = self.final(x)
@@ -629,7 +628,7 @@ def train(config=None, args=None, arch=None):
         #checkpoint_optimizer = torch.load('runs-ext.torch')
         model.load_state_dict(checkpoint["state_dict"])
         #optimizer.load_state_dict(checkpoint_optimizer["optimizer"])
-#         optimizer.param_groups[0]['lr'] = 0.002
+        #optimizer.param_groups[0]['lr'] = 0.002
         #scheduler.load_state_dict(checkpoint_optimizer["scheduler"])
 
     if not os.path.isdir(args.savedir):
@@ -668,8 +667,7 @@ def train(config=None, args=None, arch=None):
             move_loss = torch.relu(torch.abs(torch.log(out.shape[0]/max(label_len)) - np.log(1/3)) - 1) ** 2
             loss = losses["loss"] + l * move_loss
             loss.backward()
-            # if loss.item() > 0.004:
-                # print(loss.item())
+
             totalloss += loss.cpu().detach().numpy()
             if count % 1000 == 1:
                 print("Loss", loss.data, "epoch:", epoch,
